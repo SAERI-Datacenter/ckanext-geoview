@@ -20,7 +20,6 @@ ckan.module('shppreview', function (jQuery, _) {
       self.el.empty();
       self.el.append($('<div></div>').attr('id', 'map'));
       self.map = ckan.commonLeafletMap('map', this.options.map_config);
-
       // hack to make leaflet use a particular location to look for images
       L.Icon.Default.imagePath = this.options.site_url + 'js/vendor/leaflet/dist/images';
 
@@ -87,7 +86,14 @@ ckan.module('shppreview', function (jQuery, _) {
         crs = this.options.shp_config.srid;
       else
         crs = '4326';
-
+        
+      function saveToFile(content, filename) {
+        var file = filename + '.geojson';
+        saveAs(new File([JSON.stringify(content)], file, {
+        type: "text/plain;charset=utf-8"
+         }), file);
+      }
+    
       loadshp({
         url: url,
         encoding: encoding,
@@ -96,6 +102,11 @@ ckan.module('shppreview', function (jQuery, _) {
         gjLayer.addData(data);
         self.map.fitBounds(gjLayer.getBounds());
         self.map.spin(false);
+        // Add download button
+        L.easyButton( '<i class="fa fa-arrow-circle-down" title="Download GeoJson" data-toggle="tooltip" data-placement="right"></i>', function(){
+	      var data = gjLayer.toGeoJSON();
+	      saveToFile(data,preload_resource['name']);
+	    }).addTo(self.map);
       });
     }
   }
